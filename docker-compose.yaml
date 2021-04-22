@@ -1,0 +1,21 @@
+version: "2"
+services:
+
+  # Collector
+  collector:
+    image: otel/opentelemetry-collector:latest
+    command: ["--config=/etc/otel-collector-config.yaml", "--log-level=DEBUG"]
+    volumes:
+      - ./tmp/otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    ports:
+      - "55678:55678"
+      - "55679:55679"
+
+  jaeger-all-in-one:
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - "16686:16686"
+      - "6831:6831/udp"
+      - "6832:6832/udp"
+      - "14268"
+      - "14250"

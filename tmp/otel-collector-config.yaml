@@ -1,0 +1,22 @@
+# /tmp/otel-collector-config.yaml
+receivers:
+  opencensus:
+    endpoint: "0.0.0.0:55679"
+  otlp:
+    protocols:
+      http:
+        endpoint: "0.0.0.0:55678"
+exporters:
+    logging:
+        loglevel: debug
+    jaeger:
+      endpoint: jaeger-all-in-one:14250
+      insecure: true
+processors:
+    batch:
+service:
+    pipelines:
+        traces:
+            receivers: [opencensus,otlp]
+            exporters: [logging,jaeger]
+            processors: [batch]
