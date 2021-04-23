@@ -13,8 +13,6 @@ exporters:
     jaeger:
       endpoint: jaeger-all-in-one:14250
       insecure: true
-    file:
-      path: ./filename.json
 processors:
     batch:
 service:
