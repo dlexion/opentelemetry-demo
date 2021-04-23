@@ -6,10 +6,11 @@ services:
     image: otel/opentelemetry-collector:latest
     command: ["--config=/etc/otel-collector-config.yaml", "--log-level=DEBUG"]
     volumes:
-      - ./tmp/otel-collector-config.yaml:/etc/otel-collector-config.yaml
+      - ./collector/otel-collector-config.yaml:/etc/otel-collector-config.yaml
     ports:
-      - "55678:55678"
-      - "55679:55679"
+      - "55678:55678" #otlp-http
+      - "55679:55679" #opencensus
+      - "4317:4317" #otlp-grpc
 
   jaeger-all-in-one:
     image: jaegertracing/all-in-one:latest

@@ -6,12 +6,15 @@ receivers:
     protocols:
       http:
         endpoint: "0.0.0.0:55678"
+      grpc:
 exporters:
     logging:
-        loglevel: debug
+      loglevel: debug
     jaeger:
       endpoint: jaeger-all-in-one:14250
       insecure: true
+    file:
+      path: ./filename.json
 processors:
     batch:
 service:
