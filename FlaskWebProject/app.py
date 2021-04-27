@@ -13,7 +13,7 @@ import requests
 
 from opentelemetry import trace
 from opentelemetry.exporter.opencensus.trace_exporter import OpenCensusSpanExporter
-# from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import (
     BatchSpanProcessor,
@@ -34,7 +34,7 @@ from opentelemetry.instrumentation.logging import LoggingInstrumentor
 
 tracer_provider = TracerProvider(resource=Resource.create({SERVICE_NAME: "python_service_traces"}))
 trace.set_tracer_provider(tracer_provider)
-exporter = OpenCensusSpanExporter(endpoint="localhost:55679")
+exporter = OTLPSpanExporter(endpoint="http://localhost:4317")
 span_processor = BatchSpanProcessor(exporter)
 tracer_provider.add_span_processor(span_processor)
 
@@ -44,14 +44,14 @@ logger = logging.getLogger(__name__)
 FlaskInstrumentor().instrument_app(app)
 RequestsInstrumentor().instrument()
 LoggingInstrumentor().instrument(set_logging_format=True, logging_format=
-    """timestamp:\t%(asctime)s\t
-    log_level:\t%(levelname)s\t
-    name:\t%(name)s\t
-    filename:\t%(filename)s:%(lineno)d\t
-    trace_id:\t%(otelTraceID)s\t
-    span_id:\t%(otelSpanID)s\t
-    service.name:\t%(otelServiceName)s\t
-    message:\t%(message)s\n""")
+"""timestamp:\t%(asctime)s
+log_level:\t%(levelname)s
+name:\t%(name)s
+filename:\t%(filename)s:%(lineno)d
+trace_id:\t%(otelTraceID)s
+span_id:\t%(otelSpanID)s
+service.name:\t%(otelServiceName)s
+message:\t%(message)s\n""")
 
 @app.route('/')
 def hello():
