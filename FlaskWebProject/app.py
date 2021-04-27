@@ -30,11 +30,11 @@ from opentelemetry.instrumentation.requests import RequestsInstrumentor
 # from opentelemetry.sdk.metrics import MeterProvider
 
 import logging
-# from opentelemetry.instrumentation.logging import LoggingInstrumentor
+from opentelemetry.instrumentation.logging import LoggingInstrumentor
 
-exporter = OpenCensusSpanExporter(endpoint="localhost:55679")
-tracer_provider = TracerProvider() #resource=Resource.create({SERVICE_NAME: "collector_example"})
+tracer_provider = TracerProvider(resource=Resource.create({SERVICE_NAME: "python_service_traces"}))
 trace.set_tracer_provider(tracer_provider)
+exporter = OpenCensusSpanExporter(endpoint="localhost:55679")
 span_processor = BatchSpanProcessor(exporter)
 tracer_provider.add_span_processor(span_processor)
 
@@ -43,16 +43,25 @@ logger = logging.getLogger(__name__)
 
 FlaskInstrumentor().instrument_app(app)
 RequestsInstrumentor().instrument()
-# LoggingInstrumentor().instrument(set_logging_format=True)
+LoggingInstrumentor().instrument(set_logging_format=True, logging_format=
+    """timestamp:\t%(asctime)s\t
+    log_level:\t%(levelname)s\t
+    name:\t%(name)s\t
+    filename:\t%(filename)s:%(lineno)d\t
+    trace_id:\t%(otelTraceID)s\t
+    span_id:\t%(otelSpanID)s\t
+    service.name:\t%(otelServiceName)s\t
+    message:\t%(message)s\n""")
 
 @app.route('/')
 def hello():
     flask_span = trace.get_current_span()
-    flask_span.set_attribute("custom_info", "add more attributes to the server span")
+    flask_span.set_attribute("custom_info", "add more attributes to the flask instrumented span")
+    logger.info("info inside flask instrumented span")
     with tracer.start_as_current_span("example-request") as span:
         span.set_attribute("is_example", "yes :)")
         span.add_event('Python event')
-        logger.info("Test logging")
+        logger.warning("warning inside custom span")
         requests.get("http://www.example.com")
     return "Hello from Python app!"
 
