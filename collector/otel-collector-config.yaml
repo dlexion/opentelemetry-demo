@@ -13,11 +13,16 @@ exporters:
     jaeger:
       endpoint: jaeger-all-in-one:14250
       insecure: true
+    prometheus:
+      endpoint: "0.0.0.0:8889"
 processors:
     batch:
 service:
     pipelines:
         traces:
-            receivers: [opencensus,otlp]
-            exporters: [logging,jaeger]
+            receivers: [otlp]
+            exporters: [jaeger]
             processors: [batch]
+        metrics:
+            receivers: [opencensus]
+            exporters: [logging, prometheus]

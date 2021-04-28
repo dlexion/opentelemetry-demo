@@ -11,6 +11,7 @@ services:
       - "55678:55678" #otlp-http
       - "55679:55679" #opencensus
       - "4317:4317" #otlp-grpc
+      - "8889:8889"   # Prometheus exporter metrics
 
   jaeger-all-in-one:
     image: jaegertracing/all-in-one:latest
@@ -20,3 +21,11 @@ services:
       - "6832:6832/udp"
       - "14268:14268"
       - "14250:14250"
+
+  prometheus:
+    container_name: prometheus
+    image: prom/prometheus:latest
+    volumes:
+      - ./prometheus/prometheus.yaml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
