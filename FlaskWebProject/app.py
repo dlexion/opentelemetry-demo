@@ -12,7 +12,6 @@ wsgi_app = app.wsgi_app
 import requests
 
 from opentelemetry import trace
-# from opentelemetry.exporter.opencensus.trace_exporter import OpenCensusSpanExporter
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import (
@@ -24,13 +23,13 @@ from opentelemetry.instrumentation.flask import FlaskInstrumentor
 from opentelemetry.instrumentation.requests import RequestsInstrumentor
 
 from opentelemetry import metrics
-# from opentelemetry.exporter.otlp.proto.grpc.metrics_exporter import OTLPMetricsExporter
 from opentelemetry.exporter.opencensus.metrics_exporter import OpenCensusMetricsExporter
 from opentelemetry.sdk.metrics import MeterProvider
-from opentelemetry.sdk.metrics.export.controller import PushController #need it?
+from opentelemetry.sdk.metrics.export.controller import PushController
 
 import logging
 from opentelemetry.instrumentation.logging import LoggingInstrumentor
+
 #tracer setup
 tracer_provider = TracerProvider(resource=Resource.create({SERVICE_NAME: "python_service_traces"}))
 trace.set_tracer_provider(tracer_provider)
@@ -39,13 +38,12 @@ span_processor = BatchSpanProcessor(exporter)
 tracer_provider.add_span_processor(span_processor)
 
 #metrics setup
-exporter = OpenCensusMetricsExporter(
+metrics_exporter = OpenCensusMetricsExporter(
     service_name="basic-service", endpoint="localhost:55679"
 )
 metrics.set_meter_provider(MeterProvider())
 meter = metrics.get_meter(__name__)
-# metrics.get_meter_provider().start_pipeline(meter, exporter, 5)
-controller = PushController(meter, exporter, 5)
+controller = PushController(meter, metrics_exporter, 5)
 
 requests_counter = meter.create_counter(
     name="requests",

@@ -21,7 +21,7 @@ service:
     pipelines:
         traces:
             receivers: [otlp]
-            exporters: [jaeger]
+            exporters: [logging,jaeger]
             processors: [batch]
         metrics:
             receivers: [opencensus]
