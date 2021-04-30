@@ -17,5 +17,10 @@ pip install git+https://github.com/open-telemetry/opentelemetry-python.git@metri
 pip install opentelemetry-api==1.10a0
 pip install opentelemetry-sdk==1.10a0
 
+pip install --force-reinstall --no-deps opentelemetry-exporter-opencensus
+pip install --force-reinstall --no-deps opentelemetry-exporter-otlp-proto-grpc==1.10a0
+
+TBD: install corrct version of exporters rigt away
+
 run application:
 python app.py

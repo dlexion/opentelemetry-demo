@@ -20,9 +20,9 @@ processors:
 service:
     pipelines:
         traces:
-            receivers: [otlp]
-            exporters: [logging,jaeger]
+            receivers: [otlp, opencensus]
+            exporters: [logging, jaeger]
             processors: [batch]
         metrics:
-            receivers: [opencensus]
+            receivers: [otlp]
             exporters: [logging, prometheus]

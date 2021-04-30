@@ -12,7 +12,7 @@ wsgi_app = app.wsgi_app
 import requests
 
 from opentelemetry import trace
-from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+from opentelemetry.exporter.opencensus.trace_exporter import OpenCensusSpanExporter
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import (
     BatchSpanProcessor,
@@ -23,7 +23,7 @@ from opentelemetry.instrumentation.flask import FlaskInstrumentor
 from opentelemetry.instrumentation.requests import RequestsInstrumentor
 
 from opentelemetry import metrics
-from opentelemetry.exporter.opencensus.metrics_exporter import OpenCensusMetricsExporter
+from opentelemetry.exporter.otlp.proto.grpc.metrics_exporter import OTLPMetricsExporter
 from opentelemetry.sdk.metrics import MeterProvider
 from opentelemetry.sdk.metrics.export.controller import PushController
 
@@ -33,14 +33,12 @@ from opentelemetry.instrumentation.logging import LoggingInstrumentor
 #tracer setup
 tracer_provider = TracerProvider(resource=Resource.create({SERVICE_NAME: "python_service_traces"}))
 trace.set_tracer_provider(tracer_provider)
-exporter = OTLPSpanExporter(endpoint="http://localhost:4317")
+exporter = OpenCensusSpanExporter(endpoint="localhost:55679")
 span_processor = BatchSpanProcessor(exporter)
 tracer_provider.add_span_processor(span_processor)
 
 #metrics setup
-metrics_exporter = OpenCensusMetricsExporter(
-    service_name="basic-service", endpoint="localhost:55679"
-)
+metrics_exporter = OTLPMetricsExporter(endpoint="localhost:4317", insecure=True)
 metrics.set_meter_provider(MeterProvider())
 meter = metrics.get_meter(__name__)
 controller = PushController(meter, metrics_exporter, 5)
@@ -53,6 +51,36 @@ requests_counter = meter.create_counter(
 )
 
 staging_labels = {"environment": "staging"}
+
+import psutil
+# Callback to gather cpu usage
+def get_cpu_usage_callback(observer):
+    for (number, percent) in enumerate(psutil.cpu_percent(percpu=True)):
+        labels = {"cpu_number": str(number)}
+        observer.observe(percent, labels)
+
+
+meter.register_valueobserver(
+    callback=get_cpu_usage_callback,
+    name="cpu_percent",
+    description="per-cpu usage",
+    unit="1",
+    value_type=float,
+)
+
+# Callback to gather RAM memory usage
+def get_ram_usage_callback(observer):
+    ram_percent = psutil.virtual_memory().percent
+    observer.observe(ram_percent, {})
+
+
+meter.register_valueobserver(
+    callback=get_ram_usage_callback,
+    name="ram_percent",
+    description="RAM memory usage",
+    unit="1",
+    value_type=float,
+)
 
 #instrumentation
 FlaskInstrumentor().instrument_app(app)
