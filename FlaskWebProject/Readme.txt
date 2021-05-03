@@ -2,6 +2,7 @@ install dependencies (preferably cmd/powershell in admin mode):
 
 pip install requests
 pip install flask
+pip install psutil
 
 pip install opentelemetry-api
 pip install opentelemetry-sdk
